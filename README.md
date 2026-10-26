@@ -1,103 +1,147 @@
------------------------------------
+# Pac-Man — C17, raylib and xmake
 
-_DISCLAIMER:_
+A playable Pac-Man with menus, pause, five maze layouts, an in-game level editor,
+persistent settings/high scores, and synthesized chiptune music and sound effects.
+Linux/X11, tuned for the build machine; OpenGL 4.5 is required.
 
-Welcome to **raylib game template**!
-
-This template provides a base structure to start developing a small raylib game in plain C. The repo is also pre-configured with a default `LICENSE` (zlib/libpng) and a `README.md` (this one) to be properly filled by users. Feel free to change the LICENSE as required.
-
-All the sections defined by `$(Data to Fill)` are expected to be edited and filled properly. It's recommended to delete this disclaimer message after editing this `README.md` file.
-
-This template has been created to be used with raylib (www.raylib.com) and it's licensed under an unmodified zlib/libpng license.
-
-_Copyright (c) 2014-2026 Ramon Santamaria ([@raysan5](https://github.com/raysan5))_
-
------------------------------------
-## Getting Started with this template
-
-#### Linux
-When setting up this template on linux for the first time, install the dependencies from this page:
-([Working on GNU Linux](https://github.com/raysan5/raylib/wiki/Working-on-GNU-Linux))
-
-You can use this templates in a few ways: using Visual Studio, using CMake, or make your own build setup. This repository comes with Visual Studio and CMake already set up.
-
-Chose one of the follow setup options that fit in you development environment.
-
-### Visual Studio
-
-- After extracting the zip, the parent folder `raylib-game-template` should exist in the same directory as `raylib` itself.  So, your file structure should look like this:
-    - Some parent directory
-        - `raylib`
-            - the contents of https://github.com/raysan5/raylib
-        - `raylib-game-template`
-            - this `README.md` and all other raylib-game-template files
-- If using Visual Studio, open projects/VS2022/raylib-game-template.sln
-- Select on `raylib_game` in the solution explorer, then in the toolbar at the top, click `Project` > `Set as Startup Project`
-- Now you're all set up!  Click `Local Windows Debugger` with the green play arrow and the project will run.
-
-### CMake
-
-- Extract the zip of this project
-- Type the follow command:
+## Build and play
 
 ```sh
-cmake -S . -B build
+xmake
+xmake run pacman
+xmake bench -s 10
 ```
 
-> if you want to configure your project to build with debug symbols, use the flag `-DCMAKE_BUILD_TYPE=Debug`
-
-- After CMake configures your project, build with:
+xmake downloads and builds raylib 5.5 through the local package in
+`xmake/repo/packages/r/raylib-native`. No CMake build is used. Install GCC, xmake ≥ 2.9,
+X11 development headers and a working Mesa/OpenGL driver. The default release build uses
+`-O3 -march=native -mtune=native` and LTO, including raylib. The resulting binary is local
+to the build CPU; use `xmake f --native=n` for portable CPU code generation.
 
 ```sh
-cmake --build build
+xmake f -m debug
+xmake build -a                    # address/undefined-behaviour sanitizers
+xmake f -m release                # restore optimized mode
+xmake run bench_cpu --games 8     # headless behavior checks and CPU timings
 ```
 
-- Inside the build folder is another folder (named the same as the project name on CMakeLists.txt) with the executable and resources folder.
-- In order for resources to load properly, cd to `src` and run the executable (`../build/${PROJECT_NAME}/${PROJECT_NAME}`) from there.
+## Controls and screens
 
-- cmake will automatically download a current release of raylib but if you want to use your local version you can pass `-DFETCHCONTENT_SOURCE_DIR_RAYLIB=<dir_with_raylib>` 
+- Main menu: Up/Down selects; Left/Right changes maze set or starting level; Enter selects.
+- Gameplay: arrows or WASD steers. Esc/P pauses; losing window focus also pauses.
+- Pause: resume, restart, options or main menu. Simulation time does not advance while paused.
+- Options: independent music/SFX volume, unlimited/vsync/60/120/144/240/360 FPS,
+  performance overlay, and starting lives. F1 toggles the overlay during gameplay.
+- High scores: qualifying games open three-letter initials entry. Type initials or use
+  arrows, then Enter to save. Help and score-table screens are available from the menu.
 
-## $(Game Title)
+The **ARCADE** pack keeps the original maze. **MAZE TOUR** rotates Classic, Blossom,
+Glacier, Amber and Garden, two levels per maze. Each new maze has distinct topology,
+tunnels and wall color. Starting levels 1–21 are selectable; play continues beyond them
+with the last difficulty-table settings and repeating maze rotation.
+**CUSTOM** plays all valid saved editor slots in slot order.
 
-![$(Game Title)](screenshots/screenshot000.png "$(Game Title)")
+### Level editor
 
-### Description
+Choose **MAZE EDITOR**, then one of 24 slots. New slots start from the classic layout.
 
-$(Your Game Description)
+| Control | Action |
+| --- | --- |
+| Mouse / arrows | Position cursor |
+| Left click / Space / Enter | Paint selected tool |
+| Right click | Erase |
+| 1 / 2 / 3 / 4, or Tab | Wall / dot / energizer / empty |
+| M | Toggle horizontal mirror painting |
+| K | Cycle wall colors |
+| F | Fill reachable empty corridors with dots |
+| Z / Y | Undo / redo tile edits, up to 64 snapshots |
+| C | Restore classic template |
+| F2 | Rename slot; type then Enter |
+| Page Up / Page Down | Switch slots, saving current changes |
+| S | Save |
+| T | Test-play; Esc returns to editor |
+| H | Editor help |
+| Esc | Save changes and return to menu |
 
-### Features
+House geometry, its exit, the player start and the fruit spot are protected. Validation
+requires solid top/bottom boundaries, paired tunnel openings, intact landmarks and
+reachable pellets. Invalid drafts can be saved, but cannot be tested or included in the
+custom pack. Save failures leave the draft open rather than silently discarding changes.
 
- - $(Game Feature 01)
- - $(Game Feature 02)
- - $(Game Feature 03)
+### Saved data
 
-### Controls
+Settings, scores and maze files are written under `$XDG_DATA_HOME/pacman`, or
+`~/.local/share/pacman` when unset. Writes use a temporary file and rename. Maze slots are
+`levels/slot_01.maze` through `slot_24.maze`: optional `name NAME` and `color R G B` headers,
+then 31 rows of 28 tiles (`#` wall, `-` door, `.` dot, `o` energizer, space empty).
 
-Keyboard:
- - $(Game Control 01)
- - $(Game Control 02)
- - $(Game Control 03)
+### Command-line options
 
-### Screenshots
+`--window fixed|resizable|fullscreen`, `--scale N`, `--vsync`, `--no-overlay`,
+`--autoplay`, `--bench SECONDS`, `--seed N`.
 
-_TODO: Show your game to the world, animated GIFs recommended!._
+Fixed-size windows avoid tiling an unnecessarily large framebuffer. Normal UI/editor
+screens are capped at 120 FPS, unfocused windows at 30 FPS; gameplay defaults to unlimited.
+Benchmark mode bypasses saved settings and menus, disables audio, and does not apply UI caps.
 
-### Developers
+## Implementation
 
- - $(Developer 01) - $(Role/Tasks Developed)
- - $(Developer 02) - $(Role/Tasks Developed)
- - $(Developer 03) - $(Role/Tasks Developed)
+| Directory | Responsibility |
+| --- | --- |
+| `src/core` | Monotonic clock, frame pacing, statistics |
+| `src/game` | Integer simulation, maze validation, level packs, ghost AI, autopilot |
+| `src/scene` | CPU sprite batches, cached static geometry, procedural custom-maze art |
+| `src/gpu` | OpenGL 4.5 renderer, atlas composition, asynchronous GPU timer queries |
+| `src/audio` | Allocation-free wavetable synth and raylib audio-stream/SPSC queue |
+| `src/app` | Screens, editor, settings, scores and main loop |
+| `bench` | Headless checks and CPU benchmarks |
+| `assets/sprites` | Supplied sprite sheets, copied next to the executable |
 
-### Links
+Simulation runs at a fixed 60 Hz with Q16.16 distance accumulators and interpolated actor
+rendering. Ghosts use scatter/chase scheduling, individual targeting, frightened mode,
+returning eyes, house-release counters and per-level speeds. Fruit, score chains, extra
+lives, death animations and level flashing are included. Custom layouts retain fixed
+house/start landmarks; generated walls are arcade-inspired, not pixel-identical copies.
 
- - YouTube Gameplay: $(YouTube Link)
- - itch.io Release: $(itch.io Game Page)
- - Steam Release: $(Steam Game Page)
+Music and effects are generated at 48 kHz from short wavetable sequences: intro jingle,
+looping menu tune, waka, siren, frightened/eyes ambience, fruit, ghost-eaten, death, extra
+life and menu cues. A lock-free command queue separates the main thread from the audio
+callback. A missing audio device leaves the game playable without sound.
 
-### License
+## Efficiency and measurements
 
-This game sources are licensed under an unmodified zlib/libpng license, which is an OSI-certified, BSD-like license that allows static linking with closed source software. Check [LICENSE](LICENSE) for further details.
+One atlas, one draw call, packed 12-byte vertices, persistently mapped triple-buffered
+vertex storage and no full-screen clear. Maze/dot geometry is rebuilt only when dots,
+maze flashing or framebuffer dimensions change; each GPU ring slot retains its static
+copy. Unchanged frames append only animated sprites and HUD content. Modern ISA selection
+is left to `-march=native`; forcing wider SIMD is not assumed to help this branch-heavy game.
 
-$(Additional Licenses)
+Measured on i5-1135G7 / Iris Xe, Mesa 26.1.8, X11/i3. Turbo was disabled and the CPU used a
+power-saving policy; results vary with system load.
 
-*Copyright (c) $(Year) $(User Name) ($(User Twitter/GitHub Name))*
+| CPU measurement | Mean |
+| --- | ---: |
+| Game tick | 0.108 µs |
+| Static-layer update, mixed hits/rebuilds | 0.060 µs |
+| Static-layer cache hit | 0.017 µs |
+| Custom maze artwork generation, on edit/level change only | 1.45 ms |
+| Synth, 1,024 samples / 21.3 ms of audio | 12.4 µs |
+
+A 672×864 uncapped render smoke run reached **2,729 FPS**, with **1.07 µs** of CPU
+vertex building per frame and **55.4 µs** GPU draw time. The earlier uncached renderer
+spent roughly 6 µs building vertices. X11 buffer presentation remained the dominant cost.
+Use `xmake bench` for current measurements; short render runs mostly include the READY
+sequence, so use 10 seconds or longer to include moving gameplay.
+
+Verification included all five layouts and maze-file round trips, deterministic simulation,
+ASan/UBSan CPU runs, actual keyboard-driven menu/pause/options/editor/test-play flows,
+unreachable-pellet rejection, editor save/reload, a full game-over/initials/save flow, and
+PulseAudio stream startup/shutdown. Intro synthesis produced no clipped samples and ended
+within four seconds; every effect produced non-silent output.
+
+## Assets and license
+
+The supplied `general_sprites.png` supplies the classic maze and actors;
+`all_assets_palettes.png` supplies the arcade font. `hud_assets.png` and `maze_parts.png`
+are preserved alongside them. Sources use the zlib/libpng license in [LICENSE](LICENSE).
+Pac-Man artwork belongs to its respective rights holders; this is an unofficial fan project.

@@ -64,17 +64,6 @@ dkms.conf
 .cache
 compile_commands.json
 
-# Build folder
+# Build folders
 [Bb]uild
-
-# Android files
-*apk*
-android.*
-
-# WebAssembly release files
-*.data
-*.wasm
-*.html
-*.js
-!src/minshell.html
-!src/shell.html
+.xmake
