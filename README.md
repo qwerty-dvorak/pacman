@@ -127,11 +127,13 @@ power-saving policy; results vary with system load.
 | Custom maze artwork generation, on edit/level change only | 1.45 ms |
 | Synth, 1,024 samples / 21.3 ms of audio | 12.4 µs |
 
-A 672×864 uncapped render smoke run reached **2,729 FPS**, with **1.07 µs** of CPU
-vertex building per frame and **55.4 µs** GPU draw time. The earlier uncached renderer
-spent roughly 6 µs building vertices. X11 buffer presentation remained the dominant cost.
-Use `xmake bench` for current measurements; short render runs mostly include the READY
-sequence, so use 10 seconds or longer to include moving gameplay.
+A 672×864 uncapped render smoke run (overlay off) reached **2,729 FPS**, with **1.07 µs**
+of CPU vertex building per frame and **55.4 µs** GPU draw time. A subsequent documented
+`xmake bench -s 10` run, with the overlay on and moving gameplay, recorded **28,266 frames**,
+**2,827 FPS**, **2.86 µs** vertex building and **54.9 µs** GPU draw time. The earlier uncached
+renderer spent roughly 6 µs building vertices. X11 buffer presentation remained the
+dominant cost. These runs have different overlays and workloads, not a controlled FPS
+comparison. Use 10 seconds or longer to include gameplay beyond the READY sequence.
 
 Verification included all five layouts and maze-file round trips, deterministic simulation,
 ASan/UBSan CPU runs, actual keyboard-driven menu/pause/options/editor/test-play flows,
